@@ -55,8 +55,8 @@ class ClipboardManager: ObservableObject {
         resetDailyCountIfNeeded()
         requestNotificationPermission()
         
-        // Start monitoring after a longer delay to ensure UI is ready
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        // Start monitoring after an even longer delay to ensure all UI is settled
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             self.startMonitoring()
         }
     }
@@ -68,7 +68,7 @@ class ClipboardManager: ObservableObject {
     func startMonitoring() {
         stopMonitoring()
         
-        // Use a background timer to avoid interfering with UI
+        // Use a simple timer without RunLoop complications
         timer = Timer.scheduledTimer(withTimeInterval: AppSettings.shared.clipboardCheckInterval, repeats: true) { [weak self] _ in
             // Execute clipboard check entirely on background queue
             DispatchQueue.global(qos: .utility).async {
@@ -76,11 +76,8 @@ class ClipboardManager: ObservableObject {
             }
         }
         
-        // Add to run loop to ensure it works properly
-        RunLoop.current.add(timer!, forMode: .common)
-        
-        // Initial check
-        DispatchQueue.global(qos: .utility).async {
+        // Initial check after a delay
+        DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 0.5) {
             self.checkClipboard()
         }
     }
@@ -163,24 +160,20 @@ class ClipboardManager: ObservableObject {
     }
     
     private func addActivity(_ activity: ClipboardActivity) {
-        // Always update UI on main queue, but batch updates to avoid layout recursion
-        DispatchQueue.main.async { [weak self] in
+        // Use an even longer delay to ensure layout is completely done
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
-            
-            // Batch the update to prevent layout recursion
             self.updateActivityBatched(activity)
         }
     }
     
     private func updateActivityBatched(_ activity: ClipboardActivity) {
-        // Use a transaction to batch UI updates
-        withAnimation(.easeInOut(duration: 0.2)) {
-            recentActivity.insert(activity, at: 0)
-            
-            // Keep only the last 10 activities
-            if recentActivity.count > 10 {
-                recentActivity = Array(recentActivity.prefix(10))
-            }
+        // Simple update without animation to prevent layout recursion
+        recentActivity.insert(activity, at: 0)
+        
+        // Keep only the last 10 activities
+        if recentActivity.count > 10 {
+            recentActivity = Array(recentActivity.prefix(10))
         }
     }
     

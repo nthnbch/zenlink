@@ -11,15 +11,12 @@ struct MenuBarView: View {
             
             Divider()
             
-            // Statistiques compactes
+            // Statistiques compactes  
             statisticsSection
             
-            if !clipboardManager.recentActivity.isEmpty {
-                Divider()
-                
-                // Activité récente
-                activitySection
-            }
+            // Activité récente (toujours présente pour éviter les recomputations)
+            Divider()
+            activitySection
             
             Divider()
             
@@ -27,7 +24,8 @@ struct MenuBarView: View {
             actionsSection
         }
         .frame(width: 300)
-        .fixedSize(horizontal: true, vertical: false)
+        .background(Color.clear)
+        .id("menubar-content") // Add stable ID
     }
     
     private var headerSection: some View {
@@ -117,38 +115,53 @@ struct MenuBarView: View {
                 .foregroundColor(.secondary)
                 .padding(.horizontal, 16)
             
+            // Always show content, completely eliminate conditionals
             VStack(spacing: 6) {
-                ForEach(clipboardManager.recentActivity.prefix(3), id: \.timestamp) { activity in
-                    HStack(spacing: 10) {
-                        Image(systemName: activity.wasChanged ? "checkmark.circle.fill" : "circle")
-                            .foregroundColor(activity.wasChanged ? .green : .orange)
-                            .font(.caption)
-                            .frame(width: 12)
-                        
-                        Text(activity.description)
-                            .font(.caption2)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .foregroundColor(.primary)
-                        
-                        Spacer(minLength: 0)
-                        
-                        Text(activity.timeAgo)
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                            .monospacedDigit()
+                let activities = Array(clipboardManager.recentActivity.prefix(3))
+                
+                if activities.isEmpty {
+                    Text("Aucune activité récente")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .italic()
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 4)
+                        .frame(height: 24) // Fixed height
+                } else {
+                    ForEach(activities, id: \.timestamp) { activity in
+                        HStack(spacing: 10) {
+                            Image(systemName: activity.wasChanged ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(activity.wasChanged ? .green : .orange)
+                                .font(.caption)
+                                .frame(width: 12, height: 12) // Fixed size
+                            
+                            Text(activity.description)
+                                .font(.caption2)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                                .foregroundColor(.primary)
+                            
+                            Spacer(minLength: 0)
+                            
+                            Text(activity.timeAgo)
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                                .monospacedDigit()
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 2)
+                        .frame(height: 24) // Fixed height for each row
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 2)
                 }
             }
+            .frame(minHeight: 72) // Ensure consistent height (3 rows * 24pts)
         }
         .padding(.vertical, 8)
     }
     
     private var actionsSection: some View {
         VStack(spacing: 0) {
-            // Settings link with compatibility for macOS 13+
+            // Settings link with proper SettingsLink for all macOS versions
             if #available(macOS 14.0, *) {
                 SettingsLink {
                     HStack(spacing: 8) {
@@ -173,9 +186,9 @@ struct MenuBarView: View {
                 .buttonStyle(.plain)
                 .help("Ouvrir les paramètres de ZenLink")
             } else {
-                // Fallback for macOS 13
+                // For macOS 13, use a direct button that triggers settings window
                 Button(action: {
-                    openSettingsFallback()
+                    openSettingsForMacOS13()
                 }) {
                     HStack(spacing: 8) {
                         Image(systemName: "gear")
@@ -228,10 +241,26 @@ struct MenuBarView: View {
         .padding(.vertical, 8)
     }
     
-    // Fallback settings method for macOS 13
-    private func openSettingsFallback() {
-        // Try to open settings using NSApp action
-        NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+    // Simple settings opener for macOS 13
+    private func openSettingsForMacOS13() {
+        // Create and show settings window directly
+        let settingsWindow = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 500, height: 400),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        settingsWindow.title = "Paramètres ZenLink"
+        settingsWindow.contentView = NSHostingView(rootView: 
+            SettingsView()
+                .environmentObject(appSettings)
+                .environmentObject(clipboardManager)
+        )
+        settingsWindow.center()
+        settingsWindow.makeKeyAndOrderFront(nil)
+        
+        // Ensure the window stays on top
+        settingsWindow.level = .modalPanel
     }
     
 }
