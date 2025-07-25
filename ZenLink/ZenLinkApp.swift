@@ -17,6 +17,7 @@ struct ZenLinkApp: App {
             SettingsView()
                 .environmentObject(appSettings)
                 .environmentObject(clipboardManager)
+                .frame(minWidth: 500, minHeight: 400)
         }
     }
 }

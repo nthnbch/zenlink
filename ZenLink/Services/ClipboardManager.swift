@@ -1,5 +1,6 @@
 import Foundation
 import AppKit
+import SwiftUI
 
 struct ClipboardActivity {
     let timestamp: Date
@@ -7,28 +8,36 @@ struct ClipboardActivity {
     let cleanedUrl: String?
     let wasChanged: Bool
     
-    var description: String {
-        if wasChanged {
-            return "Nettoyé: \(originalUrl)"
-        } else {
-            return "Ignoré: \(originalUrl)"
-        }
-    }
+    // Precomputed properties to avoid layout recursion
+    let description: String
+    let timeAgo: String
     
-    var timeAgo: String {
-        let interval = Date().timeIntervalSince(timestamp)
+    init(timestamp: Date, originalUrl: String, cleanedUrl: String?, wasChanged: Bool) {
+        self.timestamp = timestamp
+        self.originalUrl = originalUrl
+        self.cleanedUrl = cleanedUrl
+        self.wasChanged = wasChanged
         
+        // Precompute description
+        if wasChanged {
+            self.description = "Nettoyé: \(originalUrl)"
+        } else {
+            self.description = "Ignoré: \(originalUrl)"
+        }
+        
+        // Precompute timeAgo
+        let interval = Date().timeIntervalSince(timestamp)
         if interval < 60 {
-            return "À l'instant"
+            self.timeAgo = "À l'instant"
         } else if interval < 3600 {
             let minutes = Int(interval / 60)
-            return "\(minutes)m"
+            self.timeAgo = "\(minutes)m"
         } else if interval < 86400 {
             let hours = Int(interval / 3600)
-            return "\(hours)h"
+            self.timeAgo = "\(hours)h"
         } else {
             let days = Int(interval / 86400)
-            return "\(days)j"
+            self.timeAgo = "\(days)j"
         }
     }
 }
@@ -43,10 +52,10 @@ class ClipboardManager: ObservableObject {
     private let urlCleaner = URLCleaner()
     
     init() {
-        requestNotificationPermission()
         resetDailyCountIfNeeded()
+        requestNotificationPermission()
         
-        // Démarrer la surveillance avec un délai pour éviter les problèmes de bundleProxy
+        // Start monitoring after a longer delay to ensure UI is ready
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             self.startMonitoring()
         }
@@ -59,12 +68,21 @@ class ClipboardManager: ObservableObject {
     func startMonitoring() {
         stopMonitoring()
         
+        // Use a background timer to avoid interfering with UI
         timer = Timer.scheduledTimer(withTimeInterval: AppSettings.shared.clipboardCheckInterval, repeats: true) { [weak self] _ in
-            self?.checkClipboard()
+            // Execute clipboard check entirely on background queue
+            DispatchQueue.global(qos: .utility).async {
+                self?.checkClipboard()
+            }
         }
         
+        // Add to run loop to ensure it works properly
+        RunLoop.current.add(timer!, forMode: .common)
+        
         // Initial check
-        checkClipboard()
+        DispatchQueue.global(qos: .utility).async {
+            self.checkClipboard()
+        }
     }
     
     func stopMonitoring() {
@@ -117,13 +135,17 @@ class ClipboardManager: ObservableObject {
         let wasChanged = cleanedURL != currentContent
         
         if wasChanged {
-            // Remplacer le contenu du presse-papiers
-            pasteboard.clearContents()
-            pasteboard.setString(cleanedURL, forType: .string)
+            // Remplacer le contenu du presse-papiers sur la main queue
+            DispatchQueue.main.async {
+                pasteboard.clearContents()
+                pasteboard.setString(cleanedURL, forType: .string)
+            }
             
             // Mettre à jour les statistiques
-            AppSettings.shared.incrementTotalCleaned()
-            dailyCleanedCount += 1
+            DispatchQueue.main.async {
+                AppSettings.shared.incrementTotalCleaned()
+                self.dailyCleanedCount += 1
+            }
             
             // Afficher une notification si activée
             if AppSettings.shared.showNotifications {
@@ -141,11 +163,23 @@ class ClipboardManager: ObservableObject {
     }
     
     private func addActivity(_ activity: ClipboardActivity) {
-        DispatchQueue.main.async {
-            self.recentActivity.insert(activity, at: 0)
-            // Garder seulement les 10 dernières activités
-            if self.recentActivity.count > 10 {
-                self.recentActivity = Array(self.recentActivity.prefix(10))
+        // Always update UI on main queue, but batch updates to avoid layout recursion
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Batch the update to prevent layout recursion
+            self.updateActivityBatched(activity)
+        }
+    }
+    
+    private func updateActivityBatched(_ activity: ClipboardActivity) {
+        // Use a transaction to batch UI updates
+        withAnimation(.easeInOut(duration: 0.2)) {
+            recentActivity.insert(activity, at: 0)
+            
+            // Keep only the last 10 activities
+            if recentActivity.count > 10 {
+                recentActivity = Array(recentActivity.prefix(10))
             }
         }
     }

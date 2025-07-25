@@ -27,6 +27,7 @@ struct SettingsView: View {
                 }
         }
         .frame(width: 500, height: 400)
+        .navigationTitle("Paramètres ZenLink")
     }
 }
 
@@ -35,47 +36,55 @@ struct GeneralSettingsView: View {
     @EnvironmentObject var clipboardManager: ClipboardManager
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            GroupBox("Fonctionnement") {
-                VStack(alignment: .leading, spacing: 12) {
-                    Toggle("Activer ZenLink au démarrage", isOn: $appSettings.isEnabled)
-                    
-                    Toggle("Démarrer avec macOS", isOn: $appSettings.launchAtLogin)
-                    
-                    Toggle("Afficher les notifications", isOn: $appSettings.showNotifications)
-                        .help("Affiche une notification quand un lien est nettoyé")
-                }
-                .padding()
+        Form {
+            Section {
+                Toggle("Activer ZenLink", isOn: $appSettings.isEnabled)
+                    .help("Active ou désactive le nettoyage automatique des URLs")
+                
+                Toggle("Démarrer avec macOS", isOn: $appSettings.launchAtLogin)
+                    .help("Lance ZenLink automatiquement au démarrage de macOS")
+                
+                Toggle("Afficher les notifications", isOn: $appSettings.showNotifications)
+                    .help("Affiche une notification quand un lien est nettoyé")
+            } header: {
+                Text("Fonctionnement")
+                    .font(.headline)
             }
             
-            GroupBox("Statistiques") {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Liens nettoyés aujourd'hui:")
-                        Spacer()
-                        Text("\(clipboardManager.dailyCleanedCount)")
-                            .fontWeight(.semibold)
-                    }
-                    
-                    HStack {
-                        Text("Total depuis l'installation:")
-                        Spacer()
-                        Text("\(appSettings.totalCleaned)")
-                            .fontWeight(.semibold)
-                    }
-                    
+            Section {
+                HStack {
+                    Text("Aujourd'hui")
+                    Spacer()
+                    Text("\(clipboardManager.dailyCleanedCount)")
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+                        .monospacedDigit()
+                }
+                
+                HStack {
+                    Text("Total")
+                    Spacer()
+                    Text("\(appSettings.totalCleaned)")
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+                        .monospacedDigit()
+                }
+                
+                HStack {
+                    Spacer()
                     Button("Réinitialiser les statistiques") {
                         appSettings.resetStatistics()
                         clipboardManager.resetDailyCount()
                     }
-                    .buttonStyle(.bordered)
-                    .foregroundColor(.red)
+                    .controlSize(.small)
                 }
-                .padding()
+            } header: {
+                Text("Statistiques")
+                    .font(.headline)
             }
-            
-            Spacer()
         }
+        .formStyle(.grouped)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding()
     }
 }
@@ -85,55 +94,62 @@ struct ExclusionsSettingsView: View {
     @Binding var newExclusion: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            GroupBox("Domaines exclus") {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Les liens de ces domaines ne seront pas modifiés:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    HStack {
-                        TextField("Ajouter un domaine (ex: example.com)", text: $newExclusion)
-                            .textFieldStyle(.roundedBorder)
-                        
-                        Button("Ajouter") {
+        Form {
+            Section {
+                Text("Les liens de ces domaines ne seront pas modifiés")
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+                
+                HStack {
+                    TextField("exemple.com", text: $newExclusion)
+                        .textFieldStyle(.roundedBorder)
+                        .onSubmit {
                             addExclusion()
                         }
-                        .disabled(newExclusion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    }
                     
-                    if appSettings.excludedDomains.isEmpty {
-                        Text("Aucun domaine exclu")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .italic()
-                    } else {
-                        ScrollView {
-                            LazyVStack(alignment: .leading, spacing: 4) {
-                                ForEach(appSettings.excludedDomains.sorted(), id: \.self) { domain in
-                                    HStack {
-                                        Text(domain)
-                                            .font(.system(.body, design: .monospaced))
-                                        Spacer()
-                                        Button("Supprimer") {
-                                            appSettings.removeExcludedDomain(domain)
-                                        }
-                                        .buttonStyle(.borderless)
-                                        .foregroundColor(.red)
-                                        .font(.caption)
-                                    }
-                                    .padding(.vertical, 2)
-                                }
-                            }
-                        }
-                        .frame(maxHeight: 150)
+                    Button("Ajouter") {
+                        addExclusion()
                     }
+                    .controlSize(.small)
+                    .disabled(newExclusion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
-                .padding()
+            } header: {
+                Text("Ajouter un domaine")
+                    .font(.headline)
             }
             
-            Spacer()
+            Section {
+                if appSettings.excludedDomains.isEmpty {
+                    Text("Aucun domaine exclu")
+                        .foregroundColor(.secondary)
+                        .italic()
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
+                } else {
+                    ForEach(appSettings.excludedDomains.sorted(), id: \.self) { domain in
+                        HStack {
+                            Text(domain)
+                                .font(.system(.body, design: .monospaced))
+                            
+                            Spacer()
+                            
+                            Button("Supprimer") {
+                                appSettings.removeExcludedDomain(domain)
+                            }
+                            .buttonStyle(.borderless)
+                            .foregroundColor(.red)
+                            .controlSize(.small)
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+            } header: {
+                Text("Domaines exclus")
+                    .font(.headline)
+            }
         }
+        .formStyle(.grouped)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding()
     }
     
@@ -150,52 +166,71 @@ struct AdvancedSettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            GroupBox("Nettoyage des URLs") {
-                VStack(alignment: .leading, spacing: 12) {
-                    Toggle("Supprimer les paramètres de tracking", isOn: $appSettings.removeTrackingParams)
-                        .help("Supprime utm_*, fbclid, gclid, etc.")
-                    
-                    Toggle("Supprimer les redirections", isOn: $appSettings.removeRedirects)
-                        .help("Déplie les liens raccourcis et redirections")
-                    
-                    Toggle("Normaliser les URLs", isOn: $appSettings.normalizeUrls)
-                        .help("Standardise le format des URLs")
-                }
-                .padding()
+        Form {
+            Section {
+                Toggle("Supprimer les paramètres de tracking", isOn: $appSettings.removeTrackingParams)
+                    .help("Supprime utm_*, fbclid, gclid, etc.")
+                
+                Toggle("Supprimer les redirections", isOn: $appSettings.removeRedirects)
+                    .help("Déplie les liens raccourcis et redirections")
+                
+                Toggle("Normaliser les URLs", isOn: $appSettings.normalizeUrls)
+                    .help("Standardise le format des URLs")
+            } header: {
+                Text("Nettoyage des URLs")
+                    .font(.headline)
             }
             
-            GroupBox("Performance") {
-                VStack(alignment: .leading, spacing: 12) {
+            Section {
+                HStack {
+                    Text("Délai de surveillance")
+                    Spacer()
+                    Stepper(value: $appSettings.clipboardCheckInterval, in: 0.1...2.0, step: 0.1) {
+                        Text("\(appSettings.clipboardCheckInterval, specifier: "%.1f") s")
+                            .monospacedDigit()
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .help("Un délai plus court améliore la réactivité mais utilise plus de ressources")
+            } header: {
+                Text("Performance")
+                    .font(.headline)
+            }
+            
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("Délai de surveillance du presse-papiers:")
-                        Spacer()
-                        Stepper(value: $appSettings.clipboardCheckInterval, in: 0.1...2.0, step: 0.1) {
-                            Text("\(appSettings.clipboardCheckInterval, specifier: "%.1f")s")
-                        }
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Traitement 100% local")
                     }
                     
-                    Text("Un délai plus court améliore la réactivité mais utilise plus de ressources")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .padding()
-            }
-            
-            GroupBox("Confidentialité") {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("• Aucune donnée n'est envoyée vers des serveurs externes")
-                    Text("• Tout le traitement se fait localement sur votre Mac")
-                    Text("• Aucun historique des URLs n'est conservé")
-                    Text("• Les statistiques sont stockées uniquement sur votre appareil")
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Aucune collecte de données")
+                    }
+                    
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Code open source")
+                    }
+                    
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Pas d'historique stocké")
+                    }
                 }
                 .font(.caption)
-                .foregroundColor(.secondary)
-                .padding()
+            } header: {
+                Text("Confidentialité")
+                    .font(.headline)
             }
-            
-            Spacer()
         }
+        .formStyle(.grouped)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding()
     }
 }
