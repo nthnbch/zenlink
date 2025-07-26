@@ -34,7 +34,6 @@
 "tab_exclusions" = "Exclusions";
 "tab_advanced" = "Advanced";
 "tab_language" = "Language";
-"tab_language" = "Language";
 
 /* General Settings */
 "section_functionality" = "Functionality";
@@ -88,3 +87,14 @@
 /* Language Settings */
 "language_settings_title" = "Select Language";
 "language_settings_description" = "The application will update immediately when you select a new language.";
+
+/* Information Settings */
+"tab_information" = "Information";
+"information_title" = "About ZenLink";
+"app_description" = "ZenLink automatically cleans tracking parameters from URLs you copy, protecting your privacy while maintaining functionality.";
+"version_label" = "Version";
+"repository_label" = "Source Code";
+"website_label" = "Website";
+"developer_label" = "Developer";
+"support_label" = "Support";
+"support_description" = "If you encounter any issues or have suggestions, please visit our GitHub repository.";

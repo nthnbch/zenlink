@@ -4,6 +4,7 @@ struct MenuBarView: View {
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var clipboardManager: ClipboardManager
     @EnvironmentObject var localizationManager: LocalizationManager
+    @State private var refreshID = UUID()
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -26,7 +27,10 @@ struct MenuBarView: View {
         }
         .frame(width: 300)
         .background(Color.clear)
-        .id("menubar-content") // Add stable ID
+        .id(refreshID) // Use refreshID instead of static string
+        .onReceive(NotificationCenter.default.publisher(for: .languageChanged)) { _ in
+            refreshID = UUID()
+        }
     }
     
     private var headerSection: some View {

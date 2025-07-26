@@ -5,41 +5,57 @@ struct SettingsView: View {
     @EnvironmentObject var clipboardManager: ClipboardManager
     @EnvironmentObject var localizationManager: LocalizationManager
     @State private var newExclusion = ""
+    @State private var refreshID = UUID()
     
     var body: some View {
         TabView {
             GeneralSettingsView()
                 .environmentObject(appSettings)
                 .environmentObject(clipboardManager)
+                .environmentObject(localizationManager)
                 .tabItem {
                     Label("tab_general".localized, systemImage: "gear")
                 }
             
             ExclusionsSettingsView(newExclusion: $newExclusion)
                 .environmentObject(appSettings)
+                .environmentObject(localizationManager)
                 .tabItem {
                     Label("tab_exclusions".localized, systemImage: "list.bullet")
                 }
             
             AdvancedSettingsView()
                 .environmentObject(appSettings)
+                .environmentObject(localizationManager)
                 .tabItem {
                     Label("tab_advanced".localized, systemImage: "slider.horizontal.3")
                 }
             
             LanguageSettingsView()
+                .environmentObject(localizationManager)
                 .tabItem {
                     Label("tab_language".localized, systemImage: "globe")
+                }
+            
+            InformationSettingsView()
+                .environmentObject(localizationManager)
+                .tabItem {
+                    Label("tab_information".localized, systemImage: "info.circle")
                 }
         }
         .frame(width: 500, height: 400)
         .navigationTitle("settings_title".localized)
+        .id(refreshID)
+        .onReceive(NotificationCenter.default.publisher(for: .languageChanged)) { _ in
+            refreshID = UUID()
+        }
     }
 }
 
 struct GeneralSettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var clipboardManager: ClipboardManager
+    @EnvironmentObject var localizationManager: LocalizationManager
     
     var body: some View {
         Form {
@@ -97,6 +113,7 @@ struct GeneralSettingsView: View {
 
 struct ExclusionsSettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
+    @EnvironmentObject var localizationManager: LocalizationManager
     @Binding var newExclusion: String
     
     var body: some View {
@@ -170,6 +187,7 @@ struct ExclusionsSettingsView: View {
 
 struct AdvancedSettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
+    @EnvironmentObject var localizationManager: LocalizationManager
     
     var body: some View {
         Form {
@@ -242,23 +260,23 @@ struct AdvancedSettingsView: View {
 }
 
 struct LanguageSettingsView: View {
-    @ObservedObject private var localizationManager = LocalizationManager.shared
+    @EnvironmentObject private var localizationManager: LocalizationManager
     
     var body: some View {
         Form {
             Section {
-                ForEach(localizationManager.availableLanguages, id: \.code) { language in
+                ForEach(localizationManager.availableLanguages, id: \.0) { language in
                     HStack {
-                        Text(language.name)
+                        Text(language.1)
                         Spacer()
-                        if localizationManager.currentLanguage == language.code {
+                        if localizationManager.currentLanguage == language.0 {
                             Image(systemName: "checkmark")
                                 .foregroundColor(.accentColor)
                         }
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        localizationManager.currentLanguage = language.code
+                        localizationManager.currentLanguage = language.0
                     }
                 }
             } header: {
@@ -276,8 +294,85 @@ struct LanguageSettingsView: View {
     }
 }
 
+struct InformationSettingsView: View {
+    @EnvironmentObject var localizationManager: LocalizationManager
+    
+    var body: some View {
+        Form {
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("app_description".localized)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                }
+            } header: {
+                Text("information_title".localized)
+                    .font(.headline)
+            }
+            
+            Section {
+                HStack {
+                    Text("version_label".localized)
+                    Spacer()
+                    Text("1.1.0")
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundColor(.secondary)
+                }
+                
+                HStack {
+                    Text("developer_label".localized)
+                    Spacer()
+                    Text("nthnbch")
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Section {
+                Link(destination: URL(string: "https://github.com/nthnbch/zenlink")!) {
+                    HStack {
+                        Image(systemName: "link")
+                            .foregroundColor(.accentColor)
+                        Text("repository_label".localized)
+                        Spacer()
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Link(destination: URL(string: "https://helloworld.com")!) {
+                    HStack {
+                        Image(systemName: "link")
+                            .foregroundColor(.accentColor)
+                        Text("website_label".localized)
+                        Spacer()
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("support_description".localized)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            } header: {
+                Text("support_label".localized)
+                    .font(.headline)
+            }
+        }
+        .formStyle(.grouped)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding()
+    }
+}
+
 #Preview {
     SettingsView()
         .environmentObject(AppSettings.shared)
         .environmentObject(ClipboardManager())
+        .environmentObject(LocalizationManager.shared)
 }

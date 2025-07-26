@@ -1,23 +1,7 @@
 import SwiftUI
+import Foundation
 
-// Temporary localization extension until LocalizationManager is properly included
-extension String {
-    var localized: String {
-        let currentLanguage = UserDefaults.standard.string(forKey: "selectedLanguage") ?? "en"
-        
-        if let path = Bundle.main.path(forResource: currentLanguage, ofType: "lproj"),
-           let bundle = Bundle(path: path) {
-            return NSLocalizedString(self, tableName: nil, bundle: bundle, value: self, comment: "")
-        } else if let path = Bundle.main.path(forResource: "en", ofType: "lproj"),
-                  let bundle = Bundle(path: path) {
-            return NSLocalizedString(self, tableName: nil, bundle: bundle, value: self, comment: "")
-        } else {
-            return NSLocalizedString(self, comment: "")
-        }
-    }
-}
-
-// Temporary LocalizationManager
+// Import the LocalizationManager implementation
 class LocalizationManager: ObservableObject {
     static let shared = LocalizationManager()
     
@@ -25,13 +9,17 @@ class LocalizationManager: ObservableObject {
         didSet {
             UserDefaults.standard.set(currentLanguage, forKey: "selectedLanguage")
             updateBundle()
-            objectWillChange.send()
+            // Force UI update
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .languageChanged, object: nil)
+            }
         }
     }
     
     private var bundle: Bundle = Bundle.main
     
     private init() {
+        // Get system language first, fallback to English
         let systemLanguage = Locale.current.language.languageCode?.identifier ?? "en"
         let supportedLanguage = ["en", "fr", "es"].contains(systemLanguage) ? systemLanguage : "en"
         let savedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage") ?? supportedLanguage
@@ -40,21 +28,44 @@ class LocalizationManager: ObservableObject {
     }
     
     private func updateBundle() {
-        if let path = Bundle.main.path(forResource: currentLanguage, ofType: "lproj"),
+        print("Tentative de chargement de la langue: \(currentLanguage)")
+        if let path = Bundle.main.path(forResource: currentLanguage, ofType: "lproj") {
+            print("Chemin trouvé: \(path)")
+            if let bundle = Bundle(path: path) {
+                self.bundle = bundle
+                print("Bundle chargé avec succès")
+            } else {
+                print("Impossible de créer le bundle")
+                fallbackToEnglish()
+            }
+        } else {
+            print("Aucun chemin trouvé pour \(currentLanguage)")
+            fallbackToEnglish()
+        }
+    }
+    
+    private func fallbackToEnglish() {
+        print("Fallback vers l'anglais")
+        if let path = Bundle.main.path(forResource: "en", ofType: "lproj"),
            let bundle = Bundle(path: path) {
             self.bundle = bundle
+            print("Bundle anglais chargé")
         } else {
-            if let path = Bundle.main.path(forResource: "en", ofType: "lproj"),
-               let bundle = Bundle(path: path) {
-                self.bundle = bundle
-            } else {
-                self.bundle = Bundle.main
-            }
+            print("Utilisation du bundle principal")
+            self.bundle = Bundle.main
         }
     }
     
     func localizedString(for key: String, comment: String = "") -> String {
-        return NSLocalizedString(key, tableName: nil, bundle: bundle, value: key, comment: comment)
+        let localizedValue = bundle.localizedString(forKey: key, value: nil, table: nil)
+        // Si la valeur retournée est la même que la clé, c'est que la traduction n'a pas été trouvée
+        if localizedValue == key {
+            print("Traduction manquante pour la clé: \(key)")
+            // Essayer avec le bundle principal en fallback
+            let fallbackValue = Bundle.main.localizedString(forKey: key, value: key, table: nil)
+            return fallbackValue
+        }
+        return localizedValue
     }
     
     var availableLanguages: [(code: String, name: String)] {
@@ -66,6 +77,21 @@ class LocalizationManager: ObservableObject {
     }
 }
 
+extension Notification.Name {
+    static let languageChanged = Notification.Name("languageChanged")
+}
+
+// Convenience extension for easier access
+extension String {
+    var localized: String {
+        return LocalizationManager.shared.localizedString(for: self)
+    }
+    
+    func localized(comment: String = "") -> String {
+        return LocalizationManager.shared.localizedString(for: self, comment: comment)
+    }
+}
+
 @main
 struct ZenLinkApp: App {
     @StateObject private var appSettings = AppSettings.shared
@@ -73,11 +99,13 @@ struct ZenLinkApp: App {
     @StateObject private var localizationManager = LocalizationManager.shared
     
     var body: some Scene {
-        MenuBarExtra("menubar_title".localized, systemImage: "link.circle.fill") {
+        MenuBarExtra {
             MenuBarView()
                 .environmentObject(appSettings)
                 .environmentObject(clipboardManager)
                 .environmentObject(localizationManager)
+        } label: {
+            Label("ZenLink", systemImage: "link.circle.fill")
         }
         .menuBarExtraStyle(.window)
         
