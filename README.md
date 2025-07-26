@@ -9,9 +9,6 @@ Une application macOS qui nettoie automatiquement les URLs dans votre presse-pap
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License">
 </p>
 
-<p align="center">
-  <strong>Simple • Efficace • Respectueux de la vie privée</strong>
-</p>
 
 ---
 
@@ -39,7 +36,7 @@ Une application macOS qui nettoie automatiquement les URLs dans votre presse-pap
 
 ```bash
 # Cloner le repository
-git clone https://github.com/votre-username/zenlink.git
+git clone https://github.com/nthnbch/zenlink.git
 cd zenlink
 
 # Ouvrir dans Xcode
@@ -63,12 +60,12 @@ xcodebuild -project ZenLink.xcodeproj -scheme ZenLink -configuration Release
 
 **Avant (URL avec tracking) :**
 ```
-https://foxstone.ch/blog/article?utm_source=google&utm_campaign=ads&gclid=Cj0KCQiA&gad_source=1&fbclid=IwAR&normal_param=keep
+https://sample.com/blog/article?utm_source=google&utm_campaign=ads&gclid=Cj0KCQiA&gad_source=1&fbclid=IwAR&normal_param=keep
 ```
 
 **Après (URL nettoyée) :**
 ```
-https://foxstone.ch/blog/article?normal_param=keep
+https://sample.com/blog/article?normal_param=keep
 ```
 
 ## 🧹 Paramètres supprimés
@@ -110,19 +107,7 @@ ZenLink est développé avec les technologies Apple modernes :
 - **Timer** pour la vérification périodique (500ms par défaut)
 - **UserDefaults** pour la persistance des préférences
 
-### Structure du projet
-
-```
-ZenLink/
-├── ZenLinkApp.swift              # Point d'entrée principal
-├── MenuBarView.swift             # Interface de la barre de menu
-├── SettingsView.swift            # Fenêtre de paramètres
-├── ContentView.swift             # Vue de fallback
-└── Services/
-    ├── ClipboardManager.swift    # Surveillance du presse-papier
-    ├── URLCleaner.swift          # Moteur de nettoyage des URLs
-    └── AppSettings.swift         # Gestion des préférences
-```
+#
 
 ## 🔒 Sécurité & Confidentialité
 
@@ -213,19 +198,6 @@ Les contributions sont bienvenues !
 
 Ce projet est sous **licence MIT**. Voir [LICENSE](LICENSE) pour les détails.
 
-## 🙏 À propos
-
-**ZenLink** fait partie de la série **ZenApps** - des utilitaires macOS conçus pour être :
-- **Simples** : Une seule fonction, bien exécutée
-- **Utiles** : Amélioration concrète du quotidien
-- **Respectueux** : Aucune collecte de données
-- **Natifs** : Intégration parfaite avec macOS
-
----
-
-<p align="center">
-  <strong>Développé avec ❤️ pour la communauté macOS</strong>
-</p>
 
 <p align="center">
   <a href="../../issues">🐛 Signaler un bug</a> •
@@ -271,19 +243,7 @@ ZenLink utilise une architecture moderne Swift/SwiftUI :
 - **URLComponents** pour l'analyse et la modification des URLs
 - **Timer** pour la vérification périodique (500ms)
 
-### Structure du projet
 
-```
-ZenLink/
-├── ZenLinkApp.swift          # Point d'entrée principal
-├── ContentView.swift         # Vue principale (unused in menu bar mode)
-├── MenuBarView.swift         # Interface de la barre de menu
-├── SettingsView.swift        # Fenêtre de préférences
-└── Services/
-    ├── ClipboardManager.swift # Gestion du presse-papier
-    ├── URLCleaner.swift      # Logique de nettoyage des URLs
-    └── AppSettings.swift     # Configuration et préférences
-```
 
 ## 🔒 Sécurité et confidentialité
 

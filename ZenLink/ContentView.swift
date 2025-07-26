@@ -6,10 +6,10 @@ struct ContentView: View {
             Image(systemName: "link.circle.fill")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("ZenLink")
+            Text("app_name".localized)
                 .font(.largeTitle)
                 .fontWeight(.semibold)
-            Text("Nettoyage automatique des liens")
+            Text("subtitle".localized)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }

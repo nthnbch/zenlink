@@ -1,0 +1,100 @@
+/* MenuBarView.swift */
+
+/* Header Section */
+"app_name" = "ZenLink";
+"menubar_title" = "ZenLink";
+"status_active" = "Actif";
+"status_inactive" = "Inactif";
+"tooltip_disable" = "Désactiver ZenLink";
+"tooltip_enable" = "Activer ZenLink";
+
+/* Statistics Section */
+"today" = "Aujourd'hui";
+"total" = "Total";
+
+/* Activity Section */
+"recent_activity" = "Activité récente";
+"no_recent_activity" = "Aucune activité récente";
+"cleaned_prefix" = "Nettoyé : ";
+"ignored_prefix" = "Ignoré : ";
+"time_now" = "À l'instant";
+
+/* Actions Section */
+"settings_menu" = "Paramètres…";
+"tooltip_settings" = "Ouvrir les paramètres de ZenLink";
+"quit_zenlink" = "Quitter ZenLink";
+"tooltip_quit" = "Quitter ZenLink";
+
+/* ContentView.swift */
+"subtitle" = "Nettoyage automatique des liens";
+
+/* SettingsView.swift */
+"settings_title" = "Paramètres ZenLink";
+"tab_general" = "Général";
+"tab_exclusions" = "Exclusions";
+"tab_advanced" = "Avancé";
+"tab_language" = "Langue";
+
+/* General Settings */
+"section_functionality" = "Fonctionnement";
+"enable_zenlink" = "Activer ZenLink";
+"enable_zenlink_help" = "Active ou désactive le nettoyage automatique des URLs";
+"launch_at_login" = "Démarrer avec macOS";
+"launch_at_login_help" = "Lance ZenLink automatiquement au démarrage de macOS";
+"show_notifications" = "Afficher les notifications";
+"show_notifications_help" = "Affiche une notification quand un lien est nettoyé";
+
+"section_statistics" = "Statistiques";
+"reset_statistics" = "Réinitialiser les statistiques";
+
+/* Exclusions Settings */
+"exclusions_description" = "Les liens de ces domaines ne seront pas modifiés";
+"add_domain" = "Ajouter un domaine";
+"domain_placeholder" = "exemple.com";
+"add_button" = "Ajouter";
+"excluded_domains" = "Domaines exclus";
+"no_excluded_domains" = "Aucun domaine exclu";
+"remove_button" = "Supprimer";
+
+/* Advanced Settings */
+"section_url_cleaning" = "Nettoyage des URLs";
+"remove_tracking_params" = "Supprimer les paramètres de tracking";
+"remove_tracking_params_help" = "Supprime utm_*, fbclid, gclid, etc.";
+"remove_redirects" = "Supprimer les redirections";
+"remove_redirects_help" = "Déplie les liens raccourcis et redirections";
+"normalize_urls" = "Normaliser les URLs";
+"normalize_urls_help" = "Standardise le format des URLs";
+
+"section_performance" = "Performance";
+"monitoring_delay" = "Délai de surveillance";
+"monitoring_delay_help" = "Un délai plus court améliore la réactivité mais utilise plus de ressources";
+
+"section_privacy" = "Confidentialité";
+"privacy_local" = "Traitement 100% local";
+"privacy_no_data" = "Aucune collecte de données";
+"privacy_open_source" = "Code open source";
+"privacy_no_history" = "Pas d'historique stocké";
+
+/* AppSettings.swift */
+"launch_config_comment" = "// Configuration du démarrage automatique";
+"launch_config_note" = "// Cette fonctionnalité nécessiterait l'implémentation de ServiceManagement";
+"launch_config_note2" = "// ou l'utilisation d'un script de démarrage";
+
+/* ClipboardManager.swift */
+"activity_cleaned" = "Nettoyé : %@";
+"activity_ignored" = "Ignoré : %@";
+
+/* Language Settings */
+"language_settings_title" = "Sélectionner la langue";
+"language_settings_description" = "L'application se mettra à jour immédiatement lorsque vous sélectionnerez une nouvelle langue.";
+
+/* Information Settings */
+"tab_information" = "Informations";
+"information_title" = "À propos de ZenLink";
+"app_description" = "ZenLink nettoie automatiquement les paramètres de tracking des URLs que vous copiez, protégeant votre vie privée tout en maintenant la fonctionnalité.";
+"version_label" = "Version";
+"repository_label" = "Code source";
+"website_label" = "Site web";
+"developer_label" = "Développeur";
+"support_label" = "Support";
+"support_description" = "Si vous rencontrez des problèmes ou avez des suggestions, veuillez visiter notre dépôt GitHub.";

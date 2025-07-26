@@ -3,57 +3,79 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var clipboardManager: ClipboardManager
+    @EnvironmentObject var localizationManager: LocalizationManager
     @State private var newExclusion = ""
+    @State private var refreshID = UUID()
     
     var body: some View {
         TabView {
             GeneralSettingsView()
                 .environmentObject(appSettings)
                 .environmentObject(clipboardManager)
+                .environmentObject(localizationManager)
                 .tabItem {
-                    Label("Général", systemImage: "gear")
+                    Label("tab_general".localized, systemImage: "gear")
                 }
             
             ExclusionsSettingsView(newExclusion: $newExclusion)
                 .environmentObject(appSettings)
+                .environmentObject(localizationManager)
                 .tabItem {
-                    Label("Exclusions", systemImage: "list.bullet")
+                    Label("tab_exclusions".localized, systemImage: "list.bullet")
                 }
             
             AdvancedSettingsView()
                 .environmentObject(appSettings)
+                .environmentObject(localizationManager)
                 .tabItem {
-                    Label("Avancé", systemImage: "slider.horizontal.3")
+                    Label("tab_advanced".localized, systemImage: "slider.horizontal.3")
+                }
+            
+            LanguageSettingsView()
+                .environmentObject(localizationManager)
+                .tabItem {
+                    Label("tab_language".localized, systemImage: "globe")
+                }
+            
+            InformationSettingsView()
+                .environmentObject(localizationManager)
+                .tabItem {
+                    Label("tab_information".localized, systemImage: "info.circle")
                 }
         }
         .frame(width: 500, height: 400)
-        .navigationTitle("Paramètres ZenLink")
+        .navigationTitle("settings_title".localized)
+        .id(refreshID)
+        .onReceive(NotificationCenter.default.publisher(for: .languageChanged)) { _ in
+            refreshID = UUID()
+        }
     }
 }
 
 struct GeneralSettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var clipboardManager: ClipboardManager
+    @EnvironmentObject var localizationManager: LocalizationManager
     
     var body: some View {
         Form {
             Section {
-                Toggle("Activer ZenLink", isOn: $appSettings.isEnabled)
-                    .help("Active ou désactive le nettoyage automatique des URLs")
+                Toggle("enable_zenlink".localized, isOn: $appSettings.isEnabled)
+                    .help("enable_zenlink_help".localized)
                 
-                Toggle("Démarrer avec macOS", isOn: $appSettings.launchAtLogin)
-                    .help("Lance ZenLink automatiquement au démarrage de macOS")
+                Toggle("launch_at_login".localized, isOn: $appSettings.launchAtLogin)
+                    .help("launch_at_login_help".localized)
                 
-                Toggle("Afficher les notifications", isOn: $appSettings.showNotifications)
-                    .help("Affiche une notification quand un lien est nettoyé")
+                Toggle("show_notifications".localized, isOn: $appSettings.showNotifications)
+                    .help("show_notifications_help".localized)
             } header: {
-                Text("Fonctionnement")
+                Text("section_functionality".localized)
                     .font(.headline)
             }
             
             Section {
                 HStack {
-                    Text("Aujourd'hui")
+                    Text("today".localized)
                     Spacer()
                     Text("\(clipboardManager.dailyCleanedCount)")
                         .fontWeight(.medium)
@@ -62,7 +84,7 @@ struct GeneralSettingsView: View {
                 }
                 
                 HStack {
-                    Text("Total")
+                    Text("total".localized)
                     Spacer()
                     Text("\(appSettings.totalCleaned)")
                         .fontWeight(.medium)
@@ -72,14 +94,14 @@ struct GeneralSettingsView: View {
                 
                 HStack {
                     Spacer()
-                    Button("Réinitialiser les statistiques") {
+                    Button("reset_statistics".localized) {
                         appSettings.resetStatistics()
                         clipboardManager.resetDailyCount()
                     }
                     .controlSize(.small)
                 }
             } header: {
-                Text("Statistiques")
+                Text("section_statistics".localized)
                     .font(.headline)
             }
         }
@@ -91,36 +113,37 @@ struct GeneralSettingsView: View {
 
 struct ExclusionsSettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
+    @EnvironmentObject var localizationManager: LocalizationManager
     @Binding var newExclusion: String
     
     var body: some View {
         Form {
             Section {
-                Text("Les liens de ces domaines ne seront pas modifiés")
+                Text("exclusions_description".localized)
                     .foregroundColor(.secondary)
                     .font(.caption)
                 
                 HStack {
-                    TextField("exemple.com", text: $newExclusion)
+                    TextField("domain_placeholder".localized, text: $newExclusion)
                         .textFieldStyle(.roundedBorder)
                         .onSubmit {
                             addExclusion()
                         }
                     
-                    Button("Ajouter") {
+                    Button("add_button".localized) {
                         addExclusion()
                     }
                     .controlSize(.small)
                     .disabled(newExclusion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             } header: {
-                Text("Ajouter un domaine")
+                Text("add_domain".localized)
                     .font(.headline)
             }
             
             Section {
                 if appSettings.excludedDomains.isEmpty {
-                    Text("Aucun domaine exclu")
+                    Text("no_excluded_domains".localized)
                         .foregroundColor(.secondary)
                         .italic()
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -133,7 +156,7 @@ struct ExclusionsSettingsView: View {
                             
                             Spacer()
                             
-                            Button("Supprimer") {
+                            Button("remove_button".localized) {
                                 appSettings.removeExcludedDomain(domain)
                             }
                             .buttonStyle(.borderless)
@@ -144,7 +167,7 @@ struct ExclusionsSettingsView: View {
                     }
                 }
             } header: {
-                Text("Domaines exclus")
+                Text("excluded_domains".localized)
                     .font(.headline)
             }
         }
@@ -164,26 +187,27 @@ struct ExclusionsSettingsView: View {
 
 struct AdvancedSettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
+    @EnvironmentObject var localizationManager: LocalizationManager
     
     var body: some View {
         Form {
             Section {
-                Toggle("Supprimer les paramètres de tracking", isOn: $appSettings.removeTrackingParams)
-                    .help("Supprime utm_*, fbclid, gclid, etc.")
+                Toggle("remove_tracking_params".localized, isOn: $appSettings.removeTrackingParams)
+                    .help("remove_tracking_params_help".localized)
                 
-                Toggle("Supprimer les redirections", isOn: $appSettings.removeRedirects)
-                    .help("Déplie les liens raccourcis et redirections")
+                Toggle("remove_redirects".localized, isOn: $appSettings.removeRedirects)
+                    .help("remove_redirects_help".localized)
                 
-                Toggle("Normaliser les URLs", isOn: $appSettings.normalizeUrls)
-                    .help("Standardise le format des URLs")
+                Toggle("normalize_urls".localized, isOn: $appSettings.normalizeUrls)
+                    .help("normalize_urls_help".localized)
             } header: {
-                Text("Nettoyage des URLs")
+                Text("section_url_cleaning".localized)
                     .font(.headline)
             }
             
             Section {
                 HStack {
-                    Text("Délai de surveillance")
+                    Text("monitoring_delay".localized)
                     Spacer()
                     Stepper(value: $appSettings.clipboardCheckInterval, in: 0.1...2.0, step: 0.1) {
                         Text("\(appSettings.clipboardCheckInterval, specifier: "%.1f") s")
@@ -191,9 +215,9 @@ struct AdvancedSettingsView: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                .help("Un délai plus court améliore la réactivité mais utilise plus de ressources")
+                .help("monitoring_delay_help".localized)
             } header: {
-                Text("Performance")
+                Text("section_performance".localized)
                     .font(.headline)
             }
             
@@ -202,30 +226,141 @@ struct AdvancedSettingsView: View {
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
-                        Text("Traitement 100% local")
+                        Text("privacy_local".localized)
                     }
                     
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
-                        Text("Aucune collecte de données")
+                        Text("privacy_no_data".localized)
                     }
                     
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
-                        Text("Code open source")
+                        Text("privacy_open_source".localized)
                     }
                     
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
-                        Text("Pas d'historique stocké")
+                        Text("privacy_no_history".localized)
                     }
                 }
                 .font(.caption)
             } header: {
-                Text("Confidentialité")
+                Text("section_privacy".localized)
+                    .font(.headline)
+            }
+        }
+        .formStyle(.grouped)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding()
+    }
+}
+
+struct LanguageSettingsView: View {
+    @EnvironmentObject private var localizationManager: LocalizationManager
+    
+    var body: some View {
+        Form {
+            Section {
+                ForEach(localizationManager.availableLanguages, id: \.0) { language in
+                    HStack {
+                        Text(language.1)
+                        Spacer()
+                        if localizationManager.currentLanguage == language.0 {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.accentColor)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        localizationManager.currentLanguage = language.0
+                    }
+                }
+            } header: {
+                Text("language_settings_title".localized)
+                    .font(.headline)
+            } footer: {
+                Text("language_settings_description".localized)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding()
+    }
+}
+
+struct InformationSettingsView: View {
+    @EnvironmentObject var localizationManager: LocalizationManager
+    
+    var body: some View {
+        Form {
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("app_description".localized)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                }
+            } header: {
+                Text("information_title".localized)
+                    .font(.headline)
+            }
+            
+            Section {
+                HStack {
+                    Text("version_label".localized)
+                    Spacer()
+                    Text("1.1.0")
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundColor(.secondary)
+                }
+                
+                HStack {
+                    Text("developer_label".localized)
+                    Spacer()
+                    Text("nthnbch")
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Section {
+                Link(destination: URL(string: "https://github.com/nthnbch/zenlink")!) {
+                    HStack {
+                        Image(systemName: "link")
+                            .foregroundColor(.accentColor)
+                        Text("repository_label".localized)
+                        Spacer()
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Link(destination: URL(string: "https://helloworld.com")!) {
+                    HStack {
+                        Image(systemName: "link")
+                            .foregroundColor(.accentColor)
+                        Text("website_label".localized)
+                        Spacer()
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("support_description".localized)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            } header: {
+                Text("support_label".localized)
                     .font(.headline)
             }
         }
@@ -239,4 +374,5 @@ struct AdvancedSettingsView: View {
     SettingsView()
         .environmentObject(AppSettings.shared)
         .environmentObject(ClipboardManager())
+        .environmentObject(LocalizationManager.shared)
 }

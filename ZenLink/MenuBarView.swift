@@ -3,6 +3,8 @@ import SwiftUI
 struct MenuBarView: View {
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var clipboardManager: ClipboardManager
+    @EnvironmentObject var localizationManager: LocalizationManager
+    @State private var refreshID = UUID()
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -25,7 +27,10 @@ struct MenuBarView: View {
         }
         .frame(width: 300)
         .background(Color.clear)
-        .id("menubar-content") // Add stable ID
+        .id(refreshID) // Use refreshID instead of static string
+        .onReceive(NotificationCenter.default.publisher(for: .languageChanged)) { _ in
+            refreshID = UUID()
+        }
     }
     
     private var headerSection: some View {
@@ -37,7 +42,7 @@ struct MenuBarView: View {
                     .font(.title2)
                     .imageScale(.medium)
                 
-                Text("ZenLink")
+                Text("app_name".localized)
                     .font(.headline)
                     .fontWeight(.medium)
             }
@@ -51,7 +56,7 @@ struct MenuBarView: View {
                     .fill(appSettings.isEnabled ? .green : .secondary)
                     .frame(width: 8, height: 8)
                 
-                Text(appSettings.isEnabled ? "Actif" : "Inactif")
+                Text(appSettings.isEnabled ? "status_active".localized : "status_inactive".localized)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
@@ -64,7 +69,7 @@ struct MenuBarView: View {
                         .font(.system(size: 16))
                 }
                 .buttonStyle(.plain)
-                .help(appSettings.isEnabled ? "Désactiver ZenLink" : "Activer ZenLink")
+                .help(appSettings.isEnabled ? "tooltip_disable".localized : "tooltip_enable".localized)
             }
         }
         .padding(.horizontal, 16)
@@ -74,7 +79,7 @@ struct MenuBarView: View {
     private var statisticsSection: some View {
         VStack(spacing: 8) {
             HStack {
-                Label("Aujourd'hui", systemImage: "calendar")
+                Label("today".localized, systemImage: "calendar")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .labelStyle(.titleAndIcon)
@@ -89,7 +94,7 @@ struct MenuBarView: View {
             }
             
             HStack {
-                Label("Total", systemImage: "chart.bar")
+                Label("total".localized, systemImage: "chart.bar")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .labelStyle(.titleAndIcon)
@@ -109,7 +114,7 @@ struct MenuBarView: View {
     
     private var activitySection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Activité récente")
+            Text("recent_activity".localized)
                 .font(.caption)
                 .fontWeight(.medium)
                 .foregroundColor(.secondary)
@@ -120,7 +125,7 @@ struct MenuBarView: View {
                 let activities = Array(clipboardManager.recentActivity.prefix(3))
                 
                 if activities.isEmpty {
-                    Text("Aucune activité récente")
+                    Text("no_recent_activity".localized)
                         .font(.caption2)
                         .foregroundColor(.secondary)
                         .italic()
@@ -169,7 +174,7 @@ struct MenuBarView: View {
                             .font(.caption)
                             .frame(width: 12)
                         
-                        Text("Paramètres…")
+                        Text("settings_menu".localized)
                             .font(.caption)
                         
                         Spacer()
@@ -184,7 +189,7 @@ struct MenuBarView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .help("Ouvrir les paramètres de ZenLink")
+                .help("tooltip_settings".localized)
             } else {
                 // For macOS 13, use a direct button that triggers settings window
                 Button(action: {
@@ -195,7 +200,7 @@ struct MenuBarView: View {
                             .font(.caption)
                             .frame(width: 12)
                         
-                        Text("Paramètres…")
+                        Text("settings_menu".localized)
                             .font(.caption)
                         
                         Spacer()
@@ -210,7 +215,7 @@ struct MenuBarView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .help("Ouvrir les paramètres de ZenLink")
+                .help("tooltip_settings".localized)
             }
             
             Divider()
@@ -225,7 +230,7 @@ struct MenuBarView: View {
                         .font(.caption)
                         .frame(width: 12)
                     
-                    Text("Quitter ZenLink")
+                    Text("quit_zenlink".localized)
                         .font(.caption)
                     
                     Spacer()
@@ -236,7 +241,7 @@ struct MenuBarView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help("Quitter ZenLink")
+            .help("tooltip_quit".localized)
         }
         .padding(.vertical, 8)
     }
@@ -250,7 +255,7 @@ struct MenuBarView: View {
             backing: .buffered,
             defer: false
         )
-        settingsWindow.title = "Paramètres ZenLink"
+        settingsWindow.title = "settings_title".localized
         settingsWindow.contentView = NSHostingView(rootView: 
             SettingsView()
                 .environmentObject(appSettings)

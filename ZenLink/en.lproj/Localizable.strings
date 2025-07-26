@@ -1,0 +1,100 @@
+/* MenuBarView.swift */
+
+/* Header Section */
+"app_name" = "ZenLink";
+"menubar_title" = "ZenLink";
+"status_active" = "Active";
+"status_inactive" = "Inactive";
+"tooltip_disable" = "Disable ZenLink";
+"tooltip_enable" = "Enable ZenLink";
+
+/* Statistics Section */
+"today" = "Today";
+"total" = "Total";
+
+/* Activity Section */
+"recent_activity" = "Recent Activity";
+"no_recent_activity" = "No recent activity";
+"cleaned_prefix" = "Cleaned: ";
+"ignored_prefix" = "Ignored: ";
+"time_now" = "Now";
+
+/* Actions Section */
+"settings_menu" = "Settings…";
+"tooltip_settings" = "Open ZenLink settings";
+"quit_zenlink" = "Quit ZenLink";
+"tooltip_quit" = "Quit ZenLink";
+
+/* ContentView.swift */
+"subtitle" = "Automatic link cleaning";
+
+/* SettingsView.swift */
+"settings_title" = "ZenLink Settings";
+"tab_general" = "General";
+"tab_exclusions" = "Exclusions";
+"tab_advanced" = "Advanced";
+"tab_language" = "Language";
+
+/* General Settings */
+"section_functionality" = "Functionality";
+"enable_zenlink" = "Enable ZenLink";
+"enable_zenlink_help" = "Enables or disables automatic URL cleaning";
+"launch_at_login" = "Launch at startup";
+"launch_at_login_help" = "Automatically launch ZenLink when macOS starts";
+"show_notifications" = "Show notifications";
+"show_notifications_help" = "Show a notification when a link is cleaned";
+
+"section_statistics" = "Statistics";
+"reset_statistics" = "Reset Statistics";
+
+/* Exclusions Settings */
+"exclusions_description" = "Links from these domains will not be modified";
+"add_domain" = "Add a domain";
+"domain_placeholder" = "example.com";
+"add_button" = "Add";
+"excluded_domains" = "Excluded domains";
+"no_excluded_domains" = "No excluded domains";
+"remove_button" = "Remove";
+
+/* Advanced Settings */
+"section_url_cleaning" = "URL Cleaning";
+"remove_tracking_params" = "Remove tracking parameters";
+"remove_tracking_params_help" = "Removes utm_*, fbclid, gclid, etc.";
+"remove_redirects" = "Remove redirections";
+"remove_redirects_help" = "Unfolds shortened links and redirections";
+"normalize_urls" = "Normalize URLs";
+"normalize_urls_help" = "Standardizes URL format";
+
+"section_performance" = "Performance";
+"monitoring_delay" = "Monitoring delay";
+"monitoring_delay_help" = "A shorter delay improves responsiveness but uses more resources";
+
+"section_privacy" = "Privacy";
+"privacy_local" = "100% local processing";
+"privacy_no_data" = "No data collection";
+"privacy_open_source" = "Open source code";
+"privacy_no_history" = "No history stored";
+
+/* AppSettings.swift */
+"launch_config_comment" = "// Launch at startup configuration";
+"launch_config_note" = "// This feature would require ServiceManagement implementation";
+"launch_config_note2" = "// or using a startup script";
+
+/* ClipboardManager.swift */
+"activity_cleaned" = "Cleaned: %@";
+"activity_ignored" = "Ignored: %@";
+
+/* Language Settings */
+"language_settings_title" = "Select Language";
+"language_settings_description" = "The application will update immediately when you select a new language.";
+
+/* Information Settings */
+"tab_information" = "Information";
+"information_title" = "About ZenLink";
+"app_description" = "ZenLink automatically cleans tracking parameters from URLs you copy, protecting your privacy while maintaining functionality.";
+"version_label" = "Version";
+"repository_label" = "Source Code";
+"website_label" = "Website";
+"developer_label" = "Developer";
+"support_label" = "Support";
+"support_description" = "If you encounter any issues or have suggestions, please visit our GitHub repository.";

@@ -20,15 +20,15 @@ struct ClipboardActivity {
         
         // Precompute description
         if wasChanged {
-            self.description = "Nettoyé: \(originalUrl)"
+            self.description = String(format: "activity_cleaned".localized, originalUrl)
         } else {
-            self.description = "Ignoré: \(originalUrl)"
+            self.description = String(format: "activity_ignored".localized, originalUrl)
         }
         
         // Precompute timeAgo
         let interval = Date().timeIntervalSince(timestamp)
         if interval < 60 {
-            self.timeAgo = "À l'instant"
+            self.timeAgo = "time_now".localized
         } else if interval < 3600 {
             let minutes = Int(interval / 60)
             self.timeAgo = "\(minutes)m"
