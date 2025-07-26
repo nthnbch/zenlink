@@ -1,6 +1,7 @@
+import Foundation
 import SwiftUI
 
-// Temporary localization extension until LocalizationManager is properly included
+// Temporary inline localization until LocalizationManager is properly included
 extension String {
     var localized: String {
         let currentLanguage = UserDefaults.standard.string(forKey: "selectedLanguage") ?? "en"
@@ -17,7 +18,6 @@ extension String {
     }
 }
 
-// Temporary LocalizationManager
 class LocalizationManager: ObservableObject {
     static let shared = LocalizationManager()
     
@@ -25,6 +25,7 @@ class LocalizationManager: ObservableObject {
         didSet {
             UserDefaults.standard.set(currentLanguage, forKey: "selectedLanguage")
             updateBundle()
+            // Force UI update
             objectWillChange.send()
         }
     }
@@ -32,6 +33,7 @@ class LocalizationManager: ObservableObject {
     private var bundle: Bundle = Bundle.main
     
     private init() {
+        // Get system language first, fallback to English
         let systemLanguage = Locale.current.language.languageCode?.identifier ?? "en"
         let supportedLanguage = ["en", "fr", "es"].contains(systemLanguage) ? systemLanguage : "en"
         let savedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage") ?? supportedLanguage
@@ -44,6 +46,7 @@ class LocalizationManager: ObservableObject {
            let bundle = Bundle(path: path) {
             self.bundle = bundle
         } else {
+            // Fallback to English if the language is not found
             if let path = Bundle.main.path(forResource: "en", ofType: "lproj"),
                let bundle = Bundle(path: path) {
                 self.bundle = bundle
@@ -66,27 +69,13 @@ class LocalizationManager: ObservableObject {
     }
 }
 
-@main
-struct ZenLinkApp: App {
-    @StateObject private var appSettings = AppSettings.shared
-    @StateObject private var clipboardManager = ClipboardManager()
-    @StateObject private var localizationManager = LocalizationManager.shared
+// Convenience extension for easier access
+extension String {
+    var localized: String {
+        return LocalizationManager.shared.localizedString(for: self)
+    }
     
-    var body: some Scene {
-        MenuBarExtra("menubar_title".localized, systemImage: "link.circle.fill") {
-            MenuBarView()
-                .environmentObject(appSettings)
-                .environmentObject(clipboardManager)
-                .environmentObject(localizationManager)
-        }
-        .menuBarExtraStyle(.window)
-        
-        Settings {
-            SettingsView()
-                .environmentObject(appSettings)
-                .environmentObject(clipboardManager)
-                .environmentObject(localizationManager)
-                .frame(minWidth: 500, minHeight: 400)
-        }
+    func localized(comment: String = "") -> String {
+        return LocalizationManager.shared.localizedString(for: self, comment: comment)
     }
 }
