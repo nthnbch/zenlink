@@ -4,6 +4,7 @@ struct SettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var clipboardManager: ClipboardManager
     @EnvironmentObject var localizationManager: LocalizationManager
+    @StateObject private var themeManager = ThemeManager.shared
     @State private var newExclusion = ""
     @State private var refreshID = UUID()
     
@@ -16,6 +17,17 @@ struct SettingsView: View {
                 .tabItem {
                     Label("tab_general".localized, systemImage: "gear")
                 }
+                .background(themeManager.primaryBackground)
+                .liquidGlass(intensity: themeManager.isLiquidGlassEnabled ? 0.3 : 0.0)
+            
+            AppearanceSettingsView()
+                .environmentObject(appSettings)
+                .environmentObject(localizationManager)
+                .tabItem {
+                    Label("tab_appearance".localized, systemImage: "paintbrush")
+                }
+                .background(themeManager.primaryBackground)
+                .liquidGlass(intensity: themeManager.isLiquidGlassEnabled ? 0.3 : 0.0)
             
             ExclusionsSettingsView(newExclusion: $newExclusion)
                 .environmentObject(appSettings)
@@ -23,6 +35,8 @@ struct SettingsView: View {
                 .tabItem {
                     Label("tab_exclusions".localized, systemImage: "list.bullet")
                 }
+                .background(themeManager.primaryBackground)
+                .liquidGlass(intensity: themeManager.isLiquidGlassEnabled ? 0.3 : 0.0)
             
             AdvancedSettingsView()
                 .environmentObject(appSettings)
@@ -30,25 +44,201 @@ struct SettingsView: View {
                 .tabItem {
                     Label("tab_advanced".localized, systemImage: "slider.horizontal.3")
                 }
+                .background(themeManager.primaryBackground)
+                .liquidGlass(intensity: themeManager.isLiquidGlassEnabled ? 0.3 : 0.0)
             
             LanguageSettingsView()
                 .environmentObject(localizationManager)
                 .tabItem {
                     Label("tab_language".localized, systemImage: "globe")
                 }
+                .background(themeManager.primaryBackground)
+                .liquidGlass(intensity: themeManager.isLiquidGlassEnabled ? 0.3 : 0.0)
             
             InformationSettingsView()
                 .environmentObject(localizationManager)
                 .tabItem {
                     Label("tab_information".localized, systemImage: "info.circle")
                 }
+                .background(themeManager.primaryBackground)
+                .liquidGlass(intensity: themeManager.isLiquidGlassEnabled ? 0.3 : 0.0)
         }
         .frame(width: 500, height: 400)
         .navigationTitle("settings_title".localized)
+        .background(themeManager.primaryBackground)
+        .liquidGlass(intensity: themeManager.isLiquidGlassEnabled ? 1.0 : 0.0)
+        .preferredColorScheme(themeManager.isDarkMode ? .dark : .light)
         .id(refreshID)
         .onReceive(NotificationCenter.default.publisher(for: .languageChanged)) { _ in
             refreshID = UUID()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .appearanceModeChanged)) { _ in
+            refreshID = UUID()
+            themeManager.currentAppearance = appSettings.appearanceMode
+        }
+        .onAppear {
+            themeManager.currentAppearance = appSettings.appearanceMode
+        }
+    }
+}
+
+struct AppearanceSettingsView: View {
+    @EnvironmentObject var appSettings: AppSettings
+    @EnvironmentObject var localizationManager: LocalizationManager
+    @StateObject private var themeManager = ThemeManager.shared
+    
+    var body: some View {
+        Form {
+            Section {
+                ForEach(AppearanceMode.allCases, id: \.self) { mode in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(mode.displayName)
+                                .font(.body)
+                                .foregroundColor(themeManager.primaryText)
+                            
+                            if mode == .liquidGlass {
+                                Text("appearance_liquid_glass_description".localized)
+                                    .font(.caption)
+                                    .foregroundColor(themeManager.secondaryText)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        if appSettings.appearanceMode == mode {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(themeManager.accentColor)
+                        } else {
+                            Circle()
+                                .stroke(themeManager.secondaryText, lineWidth: 1)
+                                .frame(width: 20, height: 20)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(themeManager.secondaryBackground.opacity(0.5))
+                            .liquidGlass(intensity: themeManager.isLiquidGlassEnabled ? 0.4 : 0.0)
+                    )
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            appSettings.appearanceMode = mode
+                            themeManager.currentAppearance = mode
+                            NotificationCenter.default.post(name: .appearanceModeChanged, object: nil)
+                        }
+                    }
+                }
+            } header: {
+                Text("appearance_mode_title".localized)
+                    .font(.headline)
+                    .foregroundColor(themeManager.primaryText)
+            } footer: {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("appearance_mode_description".localized)
+                        .font(.caption)
+                        .foregroundColor(themeManager.secondaryText)
+                    
+                    if appSettings.appearanceMode == .liquidGlass {
+                        HStack {
+                            Image(systemName: "sparkles")
+                                .foregroundColor(themeManager.accentColor)
+                            Text("liquid_glass_active_info".localized)
+                                .font(.caption)
+                                .foregroundColor(themeManager.accentColor)
+                        }
+                        .padding(.top, 4)
+                    }
+                }
+            }
+            
+            // Apple-style liquid glass preview
+            if appSettings.appearanceMode == .liquidGlass {
+                Section {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("liquid_glass_preview_title".localized)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(themeManager.primaryText)
+                        
+                        // Enhanced preview card with Apple-style liquid glass
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("preview_card_title".localized)
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(themeManager.primaryText)
+                                    
+                                    Text("preview_card_description".localized)
+                                        .font(.subheadline)
+                                        .foregroundColor(themeManager.secondaryText)
+                                }
+                                
+                                Spacer()
+                                
+                                VStack(spacing: 8) {
+                                    Image(systemName: "sparkles")
+                                        .foregroundColor(themeManager.accentColor)
+                                        .font(.title2)
+                                    
+                                    HStack {
+                                        Circle()
+                                            .fill(themeManager.accentColor)
+                                            .frame(width: 8, height: 8)
+                                        Text("preview_status".localized)
+                                            .font(.caption2)
+                                            .foregroundColor(themeManager.secondaryText)
+                                    }
+                                }
+                            }
+                            
+                            // Additional preview elements
+                            HStack(spacing: 12) {
+                                ForEach(0..<3) { index in
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(themeManager.accentColor.opacity(0.6))
+                                        .frame(height: 4)
+                                        .animatedLiquidGlass(intensity: 0.8)
+                                }
+                            }
+                        }
+                        .padding(.all, 20)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(0.4),
+                                            Color.white.opacity(0.1)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 0.5
+                                )
+                        )
+                        .shadow(
+                            color: Color.black.opacity(0.1),
+                            radius: 20,
+                            x: 0,
+                            y: 10
+                        )
+                    }
+                } header: {
+                    Text("liquid_glass_preview".localized)
+                        .font(.headline)
+                        .foregroundColor(themeManager.primaryText)
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .background(themeManager.primaryBackground)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding()
     }
 }
 
@@ -56,41 +246,62 @@ struct GeneralSettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var clipboardManager: ClipboardManager
     @EnvironmentObject var localizationManager: LocalizationManager
+    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         Form {
             Section {
                 Toggle("enable_zenlink".localized, isOn: $appSettings.isEnabled)
                     .help("enable_zenlink_help".localized)
+                    .foregroundColor(themeManager.primaryText)
                 
                 Toggle("launch_at_login".localized, isOn: $appSettings.launchAtLogin)
                     .help("launch_at_login_help".localized)
+                    .foregroundColor(themeManager.primaryText)
                 
                 Toggle("show_notifications".localized, isOn: $appSettings.showNotifications)
                     .help("show_notifications_help".localized)
+                    .foregroundColor(themeManager.primaryText)
             } header: {
                 Text("section_functionality".localized)
                     .font(.headline)
+                    .foregroundColor(themeManager.primaryText)
             }
             
             Section {
                 HStack {
                     Text("today".localized)
+                        .foregroundColor(themeManager.primaryText)
                     Spacer()
                     Text("\(clipboardManager.dailyCleanedCount)")
                         .fontWeight(.medium)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(themeManager.secondaryText)
                         .monospacedDigit()
                 }
+                .padding(.vertical, 4)
+                .padding(.horizontal, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(themeManager.secondaryBackground.opacity(0.3))
+                        .liquidGlass(intensity: themeManager.isLiquidGlassEnabled ? 0.4 : 0.0)
+                )
                 
                 HStack {
                     Text("total".localized)
+                        .foregroundColor(themeManager.primaryText)
                     Spacer()
                     Text("\(appSettings.totalCleaned)")
                         .fontWeight(.medium)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(themeManager.secondaryText)
                         .monospacedDigit()
                 }
+                .padding(.vertical, 4)
+                .padding(.horizontal, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(themeManager.secondaryBackground.opacity(0.3))
+                        .liquidGlass(intensity: themeManager.isLiquidGlassEnabled ? 0.4 : 0.0)
+                )
                 
                 HStack {
                     Spacer()
@@ -99,13 +310,16 @@ struct GeneralSettingsView: View {
                         clipboardManager.resetDailyCount()
                     }
                     .controlSize(.small)
+                    .foregroundColor(themeManager.accentColor)
                 }
             } header: {
                 Text("section_statistics".localized)
                     .font(.headline)
+                    .foregroundColor(themeManager.primaryText)
             }
         }
         .formStyle(.grouped)
+        .background(themeManager.primaryBackground)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding()
     }
@@ -265,7 +479,7 @@ struct LanguageSettingsView: View {
     var body: some View {
         Form {
             Section {
-                ForEach(localizationManager.availableLanguages, id: \.0) { language in
+                ForEach(Array(localizationManager.availableLanguages), id: \.0) { language in
                     HStack {
                         Text(language.1)
                         Spacer()
@@ -276,7 +490,7 @@ struct LanguageSettingsView: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        localizationManager.currentLanguage = language.0
+                        localizationManager.setLanguage(language.0)
                     }
                 }
             } header: {

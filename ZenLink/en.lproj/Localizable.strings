@@ -98,3 +98,19 @@
 "developer_label" = "Developer";
 "support_label" = "Support";
 "support_description" = "If you encounter any issues or have suggestions, please visit our GitHub repository.";
+
+/* Appearance Settings */
+"tab_appearance" = "Appearance";
+"appearance_mode_title" = "Appearance Mode";
+"appearance_mode_description" = "Choose how ZenLink looks. Changes apply immediately.";
+"appearance_light" = "Light";
+"appearance_dark" = "Dark";
+"appearance_liquid_glass" = "Liquid Glass";
+"appearance_system" = "System";
+"appearance_liquid_glass_description" = "Modern glass effect with transparency and blur";
+"liquid_glass_active_info" = "Liquid Glass mode is active";
+"liquid_glass_preview" = "Preview";
+"liquid_glass_preview_title" = "Liquid Glass Effect";
+"preview_card_title" = "Sample Card";
+"preview_card_description" = "This shows how the glass effect looks";
+"preview_status" = "Active";

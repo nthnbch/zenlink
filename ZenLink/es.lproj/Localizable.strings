@@ -98,3 +98,19 @@
 "developer_label" = "Desarrollador";
 "support_label" = "Soporte";
 "support_description" = "Si encuentras algún problema o tienes sugerencias, por favor visita nuestro repositorio de GitHub.";
+
+/* Appearance Settings */
+"tab_appearance" = "Apariencia";
+"appearance_mode_title" = "Modo de apariencia";
+"appearance_mode_description" = "Elige cómo se ve ZenLink. Los cambios se aplican inmediatamente.";
+"appearance_light" = "Claro";
+"appearance_dark" = "Oscuro";
+"appearance_liquid_glass" = "Cristal Líquido";
+"appearance_system" = "Sistema";
+"appearance_liquid_glass_description" = "Efecto de cristal moderno con transparencia y desenfoque";
+"liquid_glass_active_info" = "El modo Cristal Líquido está activo";
+"liquid_glass_preview" = "Vista previa";
+"liquid_glass_preview_title" = "Efecto Cristal Líquido";
+"preview_card_title" = "Tarjeta de ejemplo";
+"preview_card_description" = "Esto muestra cómo se ve el efecto de cristal";
+"preview_status" = "Activo";

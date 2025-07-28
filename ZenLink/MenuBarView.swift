@@ -4,6 +4,7 @@ struct MenuBarView: View {
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var clipboardManager: ClipboardManager
     @EnvironmentObject var localizationManager: LocalizationManager
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var refreshID = UUID()
     
     var body: some View {
@@ -12,24 +13,35 @@ struct MenuBarView: View {
             headerSection
             
             Divider()
+                .opacity(themeManager.isLiquidGlassEnabled ? 0.3 : 1.0)
             
             // Statistiques compactes  
             statisticsSection
             
             // Activité récente (toujours présente pour éviter les recomputations)
             Divider()
+                .opacity(themeManager.isLiquidGlassEnabled ? 0.3 : 1.0)
             activitySection
             
             Divider()
+                .opacity(themeManager.isLiquidGlassEnabled ? 0.3 : 1.0)
             
             // Actions
             actionsSection
         }
         .frame(width: 300)
-        .background(Color.clear)
-        .id(refreshID) // Use refreshID instead of static string
-        .onReceive(NotificationCenter.default.publisher(for: .languageChanged)) { _ in
+        .background(themeManager.primaryBackground)
+        .liquidGlass(intensity: themeManager.isLiquidGlassEnabled ? 1.0 : 0.0)
+        .preferredColorScheme(themeManager.isDarkMode ? .dark : .light)
+        .id(refreshID)
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("LanguageChanged"))) { _ in
             refreshID = UUID()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AppearanceModeChanged"))) { _ in
+            refreshID = UUID()
+        }
+        .onAppear {
+            themeManager.currentAppearance = appSettings.appearanceMode
         }
     }
     
@@ -38,13 +50,14 @@ struct MenuBarView: View {
             // App icon and name with better spacing
             HStack(spacing: 8) {
                 Image(systemName: "link.circle.fill")
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(themeManager.accentColor)
                     .font(.title2)
                     .imageScale(.medium)
                 
                 Text("app_name".localized)
                     .font(.headline)
                     .fontWeight(.medium)
+                    .foregroundColor(themeManager.primaryText)
             }
             
             Spacer()
@@ -53,19 +66,19 @@ struct MenuBarView: View {
             HStack(spacing: 8) {
                 // Status indicator
                 Circle()
-                    .fill(appSettings.isEnabled ? .green : .secondary)
+                    .fill(appSettings.isEnabled ? themeManager.accentColor : themeManager.secondaryText)
                     .frame(width: 8, height: 8)
                 
                 Text(appSettings.isEnabled ? "status_active".localized : "status_inactive".localized)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(themeManager.secondaryText)
                 
                 // Power button with proper styling
                 Button(action: {
                     appSettings.isEnabled.toggle()
                 }) {
                     Image(systemName: appSettings.isEnabled ? "power.circle.fill" : "power.circle")
-                        .foregroundColor(appSettings.isEnabled ? .green : .secondary)
+                        .foregroundColor(appSettings.isEnabled ? themeManager.accentColor : themeManager.secondaryText)
                         .font(.system(size: 16))
                 }
                 .buttonStyle(.plain)
@@ -74,6 +87,8 @@ struct MenuBarView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
+        .background(themeManager.secondaryBackground.opacity(0.3))
+        .animatedLiquidGlass(intensity: 0.6)
     }
     
     private var statisticsSection: some View {
@@ -81,7 +96,7 @@ struct MenuBarView: View {
             HStack {
                 Label("today".localized, systemImage: "calendar")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(themeManager.secondaryText)
                     .labelStyle(.titleAndIcon)
                 
                 Spacer()
@@ -89,14 +104,14 @@ struct MenuBarView: View {
                 Text("\(clipboardManager.dailyCleanedCount)")
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(.primary)
+                    .foregroundColor(themeManager.primaryText)
                     .monospacedDigit()
             }
             
             HStack {
                 Label("total".localized, systemImage: "chart.bar")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(themeManager.secondaryText)
                     .labelStyle(.titleAndIcon)
                 
                 Spacer()
@@ -104,12 +119,14 @@ struct MenuBarView: View {
                 Text("\(appSettings.totalCleaned)")
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(.primary)
+                    .foregroundColor(themeManager.primaryText)
                     .monospacedDigit()
             }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
+        .background(themeManager.secondaryBackground.opacity(0.2))
+        .liquidGlass(intensity: 0.3)
     }
     
     private var activitySection: some View {
@@ -246,26 +263,46 @@ struct MenuBarView: View {
         .padding(.vertical, 8)
     }
     
-    // Simple settings opener for macOS 13
+    // Enhanced settings opener for macOS 13 with better window management
     private func openSettingsForMacOS13() {
-        // Create and show settings window directly
+        // Close any existing settings windows first
+        for window in NSApp.windows {
+            if window.title == "settings_title".localized {
+                window.close()
+            }
+        }
+        
+        // Create and configure settings window
         let settingsWindow = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 500, height: 400),
-            styleMask: [.titled, .closable, .resizable],
+            styleMask: [.titled, .closable, .resizable, .miniaturizable],
             backing: .buffered,
             defer: false
         )
+        
         settingsWindow.title = "settings_title".localized
+        settingsWindow.isReleasedWhenClosed = true // Changé de false à true pour éviter les fuites
+        settingsWindow.hidesOnDeactivate = false
+        
+        // Set content view
         settingsWindow.contentView = NSHostingView(rootView: 
             SettingsView()
                 .environmentObject(appSettings)
                 .environmentObject(clipboardManager)
+                .environmentObject(localizationManager)
+                .environmentObject(themeManager)
         )
-        settingsWindow.center()
-        settingsWindow.makeKeyAndOrderFront(nil)
         
-        // Ensure the window stays on top
-        settingsWindow.level = .modalPanel
+        // Position window nicely
+        settingsWindow.center()
+        
+        // Enhanced window visibility settings
+        settingsWindow.level = .normal
+        settingsWindow.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        
+        // Show window
+        NSApp.activate(ignoringOtherApps: true)
+        settingsWindow.makeKeyAndOrderFront(nil)
     }
     
 }

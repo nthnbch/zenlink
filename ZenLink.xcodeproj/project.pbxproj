@@ -16,6 +16,8 @@
 		1A000014294F1A4E00000001 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A000015294F1A4E00000001 /* MenuBarView.swift */; };
 		1A000016294F1A5B00000001 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A000017294F1A5B00000001 /* SettingsView.swift */; };
 		1A000018294F1A6800000001 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A000019294F1A6800000001 /* AppSettings.swift */; };
+		3CF7F1EFB4574F3CA7A8A0BD /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A369C7A17C4E5ABF9FA165 /* LocalizationManager.swift */; };
+		3E3339552082475384DA3906 /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37D21B804834F178E3D7669 /* ThemeManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -169,6 +171,8 @@ Base,
 1A000014294F1A4E00000001 /* MenuBarView.swift in Sources */,
 1A000016294F1A5B00000001 /* SettingsView.swift in Sources */,
 1A000018294F1A6800000001 /* AppSettings.swift in Sources */,
+				3CF7F1EFB4574F3CA7A8A0BD /* LocalizationManager.swift in Sources */,
+				3E3339552082475384DA3906 /* ThemeManager.swift in Sources */,
 );
 			runOnlyForDeploymentPostprocessing = 0;
 		};

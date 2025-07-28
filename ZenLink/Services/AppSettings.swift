@@ -1,8 +1,55 @@
 import Foundation
 import Combine
+import SwiftUI
+
+enum AppearanceMode: String, CaseIterable {
+    case light = "light"
+    case dark = "dark"
+    case liquidGlass = "liquidGlass"
+    case system = "system"
+    
+    var displayName: String {
+        switch self {
+        case .light:
+            return NSLocalizedString("appearance_light", comment: "")
+        case .dark:
+            return NSLocalizedString("appearance_dark", comment: "")
+        case .liquidGlass:
+            return NSLocalizedString("appearance_liquid_glass", comment: "")
+        case .system:
+            return NSLocalizedString("appearance_system", comment: "")
+        }
+    }
+    
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        case .liquidGlass:
+            return nil // Will be handled specially
+        case .system:
+            return nil
+        }
+    }
+}
 
 class AppSettings: ObservableObject {
     static let shared = AppSettings()
+    
+    @Published var appearanceMode: AppearanceMode {
+        didSet {
+            guard appearanceMode != oldValue else { return }
+            UserDefaults.standard.set(appearanceMode.rawValue, forKey: "appearanceMode")
+            // Post notification for appearance change
+            NotificationCenter.default.post(
+                name: NSNotification.Name("AppSettingsChanged"), 
+                object: nil,
+                userInfo: ["appearanceMode": appearanceMode.rawValue]
+            )
+        }
+    }
     
     @Published var isEnabled: Bool {
         didSet {
@@ -60,6 +107,8 @@ class AppSettings: ObservableObject {
     }
     
     private init() {
+        let savedAppearance = UserDefaults.standard.string(forKey: "appearanceMode") ?? AppearanceMode.system.rawValue
+        self.appearanceMode = AppearanceMode(rawValue: savedAppearance) ?? .system
         self.isEnabled = UserDefaults.standard.object(forKey: "isEnabled") as? Bool ?? true
         self.launchAtLogin = UserDefaults.standard.object(forKey: "launchAtLogin") as? Bool ?? false
         self.showNotifications = UserDefaults.standard.object(forKey: "showNotifications") as? Bool ?? true

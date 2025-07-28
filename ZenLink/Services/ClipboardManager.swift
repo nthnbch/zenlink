@@ -20,15 +20,15 @@ struct ClipboardActivity {
         
         // Precompute description
         if wasChanged {
-            self.description = String(format: "activity_cleaned".localized, originalUrl)
+            self.description = String(format: NSLocalizedString("activity_cleaned", comment: ""), originalUrl)
         } else {
-            self.description = String(format: "activity_ignored".localized, originalUrl)
+            self.description = String(format: NSLocalizedString("activity_ignored", comment: ""), originalUrl)
         }
         
         // Precompute timeAgo
         let interval = Date().timeIntervalSince(timestamp)
         if interval < 60 {
-            self.timeAgo = "time_now".localized
+            self.timeAgo = NSLocalizedString("time_now", comment: "")
         } else if interval < 3600 {
             let minutes = Int(interval / 60)
             self.timeAgo = "\(minutes)m"
@@ -50,14 +50,16 @@ class ClipboardManager: ObservableObject {
     private var lastClipboardContent: String = ""
     private var lastDailyCountReset: Date = Date()
     private let urlCleaner = URLCleaner()
+    private var isInitialized = false
     
     init() {
         resetDailyCountIfNeeded()
         requestNotificationPermission()
         
-        // Start monitoring after an even longer delay to ensure all UI is settled
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            self.startMonitoring()
+        // Start monitoring after app is fully loaded
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+            self?.startMonitoring()
+            self?.isInitialized = true
         }
     }
     
@@ -68,17 +70,29 @@ class ClipboardManager: ObservableObject {
     func startMonitoring() {
         stopMonitoring()
         
-        // Use a simple timer without RunLoop complications
+        guard isInitialized || Bundle.main.bundleIdentifier != nil else {
+            // Retry after delay if not ready
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                self?.startMonitoring()
+            }
+            return
+        }
+        
+        // Create timer on main queue but execute work on background
         timer = Timer.scheduledTimer(withTimeInterval: AppSettings.shared.clipboardCheckInterval, repeats: true) { [weak self] _ in
-            // Execute clipboard check entirely on background queue
             DispatchQueue.global(qos: .utility).async {
                 self?.checkClipboard()
             }
         }
         
-        // Initial check after a delay
-        DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 0.5) {
-            self.checkClipboard()
+        // Add to runloop to ensure proper cleanup
+        if let timer = timer {
+            RunLoop.main.add(timer, forMode: .common)
+        }
+        
+        // Initial check
+        DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.checkClipboard()
         }
     }
     
@@ -160,14 +174,17 @@ class ClipboardManager: ObservableObject {
     }
     
     private func addActivity(_ activity: ClipboardActivity) {
-        // Use an even longer delay to ensure layout is completely done
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+        // Update immediately but on main queue to avoid UI issues
+        DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.updateActivityBatched(activity)
         }
     }
     
     private func updateActivityBatched(_ activity: ClipboardActivity) {
+        // Prevent updates if UI is not ready
+        guard isInitialized else { return }
+        
         // Simple update without animation to prevent layout recursion
         recentActivity.insert(activity, at: 0)
         
