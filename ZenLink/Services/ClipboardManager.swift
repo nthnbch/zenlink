@@ -194,12 +194,39 @@ class ClipboardManager: ObservableObject {
     }
     
     private func requestNotificationPermission() {
-        // Éviter les problèmes de bundle avec UNUserNotificationCenter
-        // On utilisera NSUserNotification à la place pour la compatibilité
+        // Vérifier que NSUserNotificationCenter est disponible
+        if NSUserNotificationCenter.default.respond(to: #selector(NSUserNotificationCenter.default.removeAllDeliveredNotifications)) {
+            // Configurer le centre de notification pour ne pas conserver les notifications
+            NSUserNotificationCenter.default.removeAllDeliveredNotifications()
+            
+            // Configurer un délégué si nécessaire pour gérer les interactions avec les notifications
+            // NSUserNotificationCenter.default.delegate = self
+        }
     }
     
     private func showNotification(originalURL: String, cleanedURL: String) {
-        // Notifications désactivées pour éviter les APIs dépréciées
-        // On peut ajouter une indication visuelle dans l'interface plus tard
+        // Utilisez NSUserNotification pour la compatibilité avec les versions plus anciennes de macOS
+        DispatchQueue.main.async {
+            let notification = NSUserNotification()
+            notification.title = "ZenLink"
+            
+            // Message localisé
+            let format = NSLocalizedString("url_cleaned_notification", comment: "")
+            
+            // Tronquer les URLs longues pour la notification
+            let maxLength = 40
+            let shortenedOriginal = originalURL.count > maxLength ? originalURL.prefix(maxLength) + "..." : originalURL
+            
+            notification.informativeText = String(format: format, shortenedOriginal)
+            notification.soundName = nil // Pas de son
+            notification.hasActionButton = false
+            notification.hasReplyButton = false
+            
+            // Définir le délai de disparition (plus court que la valeur par défaut)
+            notification.deliveryDate = Date(timeIntervalSinceNow: 0.1)
+            notification.withdrawDate = Date(timeIntervalSinceNow: 3.0) // Disparaît après 3 secondes
+            
+            NSUserNotificationCenter.default.deliver(notification)
+        }
     }
 }

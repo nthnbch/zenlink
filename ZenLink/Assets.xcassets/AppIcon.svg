@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <circle cx="512" cy="512" r="460" fill="url(#paint0_linear)"/>
+  
+  <!-- Link shape -->
+  <path d="M342 512C342 465.726 379.726 428 426 428H512V512H426V596H342V512Z" fill="white"/>
+  <path d="M682 512C682 558.274 644.274 596 598 596H512V512H598V428H682V512Z" fill="white"/>
+  
+  <!-- Clean brush stroke -->
+  <path d="M256 724C424 608 600 636 768 724" stroke="white" stroke-width="40" stroke-linecap="round"/>
+  
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="paint0_linear" x1="512" y1="52" x2="512" y2="972" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F46E5"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+</svg>

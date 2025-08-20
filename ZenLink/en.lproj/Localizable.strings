@@ -83,6 +83,7 @@
 /* ClipboardManager.swift */
 "activity_cleaned" = "Cleaned: %@";
 "activity_ignored" = "Ignored: %@";
+"url_cleaned_notification" = "%@ has been cleaned";
 
 /* Language Settings */
 "language_settings_title" = "Select Language";
