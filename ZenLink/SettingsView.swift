@@ -43,7 +43,6 @@ struct SettingsView: View {
                     Label("tab_information".localized, systemImage: "info.circle")
                 }
         }
-        .frame(width: 500, height: 400)
         .navigationTitle("settings_title".localized)
         .id(refreshID)
         .onReceive(NotificationCenter.default.publisher(for: .languageChanged)) { _ in

@@ -94,6 +94,14 @@ iOSInjectionProject/
 .AppleDouble
 .LSOverride
 
+# IDEs
+.vscode/
+.idea/
+
+# Environment variables
+.env
+.env.local
+
 # Icon must end with two \r
 Icon
 

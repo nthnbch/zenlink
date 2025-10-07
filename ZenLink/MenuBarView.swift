@@ -26,7 +26,7 @@ struct MenuBarView: View {
             actionsSection
         }
         .frame(width: 300)
-        .background(Color.clear)
+        .background(Color(NSColor.controlBackgroundColor))
         .id(refreshID) // Use refreshID instead of static string
         .onReceive(NotificationCenter.default.publisher(for: .languageChanged)) { _ in
             refreshID = UUID()
